@@ -6,7 +6,7 @@ import seaborn as sns
 
 @st.cache_data(ttl=600)
 def load_data():
-    SHEET_URL = "https://docs.google.com/spreadsheets/d/1dnVvrZO1m-865ISJGnXCL9K0HijplSPF/export?format=csv"
+    SHEET_URL = "https://docs.google.com/spreadsheets/d/17ncvKhRIvn6z8vcAjHC0ZZjdbHRmCliG/export?format=csv"
     return pd.read_csv(SHEET_URL)
 
 def main():
