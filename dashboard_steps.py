@@ -28,45 +28,103 @@ def main():
     #st.title("Activity Tracking Dashboard 🏃‍♂️")
     st.sidebar.header("Filter Data")
 
-    # Dependent Filters
-    selected_org = st.sidebar.selectbox("Select Organization", ["All"] + sorted(df_activity["OrganizationName"].dropna().unique().tolist()))
-    filtered_cohorts = df_activity[df_activity["OrganizationName"] == selected_org] if selected_org != "All" else df_activity
-    selected_cohort = st.sidebar.selectbox("Select Cohort", ["All"] + sorted(filtered_cohorts["CohortName"].dropna().unique().tolist()))
-    filtered_programs = filtered_cohorts[filtered_cohorts["CohortName"] == selected_cohort] if selected_cohort != "All" else filtered_cohorts
-    selected_program = st.sidebar.selectbox("Select Program", ["All"] + sorted(filtered_programs["ProgramName"].dropna().unique().tolist()))
-    filtered_physicians = filtered_programs[filtered_programs["ProgramName"] == selected_program] if selected_program != "All" else filtered_programs
-    selected_physician = st.sidebar.selectbox("Select Physician", ["All"] + sorted(filtered_physicians["PhysicianName"].dropna().unique().tolist()))
-    filtered_participants = filtered_physicians[filtered_physicians["PhysicianName"] == selected_physician] if selected_physician != "All" else filtered_physicians
-    selected_participant = st.sidebar.selectbox("Select Participant", ["All"] + sorted(filtered_participants["ParticipantName"].dropna().unique().tolist()))
-    selected_age_group = st.sidebar.selectbox("Select Age Group", ["All"] + sorted(filtered_participants["AgeGroup"].dropna().unique().tolist()))
-    selected_gender = st.sidebar.selectbox("Select Gender", ["All"] + sorted(filtered_participants["ParticipantGender"].dropna().unique().tolist()))
-    selected_ethnicity = st.sidebar.selectbox("Select Ethnicity", ["All"] + sorted(filtered_participants["Ethnicity"].dropna().unique().tolist()))
-    # selected_race = st.sidebar.selectbox("Select Race", ["All"] + sorted(filtered_participants["Race"].dropna().unique().tolist()))
-    selected_city = st.sidebar.selectbox("Select City", ["All"] + sorted(filtered_participants["City"].dropna().unique().tolist()))
-   # selected_country = st.sidebar.selectbox("Select Country", ["All"] + sorted(filtered_participants["Country"].dropna().unique().tolist()))
+#import streamlit as st
 
-    # Apply Filters
-    df_filtered = filtered_participants.copy()
+    # Select Organization
+    selected_org = st.sidebar.selectbox("Select Organization", ["All"] + sorted(df_activity["OrganizationName"].dropna().unique().tolist()))
+
+    # Filter Data Based on Organization
+    filtered_df = df_activity.copy()
+    if selected_org != "All":
+        filtered_df = filtered_df[filtered_df["OrganizationName"] == selected_org]
+
+    # Select Cohort (Filtered Based on Organization)
+    selected_cohort = st.sidebar.selectbox("Select Cohort", ["All"] + sorted(filtered_df["CohortName"].dropna().unique().tolist()))
+    if selected_cohort != "All":
+        filtered_df = filtered_df[filtered_df["CohortName"] == selected_cohort]
+
+    # Select Program (Filtered Based on Cohort)
+    selected_program = st.sidebar.selectbox("Select Program", ["All"] + sorted(filtered_df["ProgramName"].dropna().unique().tolist()))
+    if selected_program != "All":
+        filtered_df = filtered_df[filtered_df["ProgramName"] == selected_program]
+
+    # Select Physician (Filtered Based on Program)
+    selected_physician = st.sidebar.selectbox("Select Physician", ["All"] + sorted(filtered_df["PhysicianName"].dropna().unique().tolist()))
+    if selected_physician != "All":
+        filtered_df = filtered_df[filtered_df["PhysicianName"] == selected_physician]
+
+    # Select Gender BEFORE Participant (To prevent conflicts)
+    selected_gender = st.sidebar.selectbox("Select Gender", ["All"] + sorted(filtered_df["ParticipantGender"].dropna().unique().tolist()))
     if selected_gender != "All":
-        df_filtered = df_filtered[df_filtered["ParticipantGender"] == selected_gender]
+        filtered_df = filtered_df[filtered_df["ParticipantGender"] == selected_gender]
+
+    # Select Age Group (Filtered Based on Gender)
+    selected_age_group = st.sidebar.selectbox("Select Age Group", ["All"] + sorted(filtered_df["AgeGroup"].dropna().unique().tolist()))
     if selected_age_group != "All":
-        df_filtered = df_filtered[df_filtered["AgeGroup"] == selected_age_group]
+        filtered_df = filtered_df[filtered_df["AgeGroup"] == selected_age_group]
+
+    # Select Ethnicity (Filtered Based on Gender & Age Group)
+    selected_ethnicity = st.sidebar.selectbox("Select Ethnicity", ["All"] + sorted(filtered_df["Ethnicity"].dropna().unique().tolist()))
     if selected_ethnicity != "All":
-        df_filtered = df_filtered[df_filtered["Ethnicity"] == selected_ethnicity]
-    
-    
-    if selected_participant != "All":
-        df_filtered = df_filtered[df_filtered["ParticipantName"] == selected_participant]
-    #if selected_age_group != "All":
-    #    df_filtered = df_filtered[df_filtered["AgeGroup"] == selected_age_group]
-    #if selected_gender != "All":
-     #   df_filtered = df_filtered[df_filtered["ParticipantGender"] == selected_gender]
-    #if selected_ethnicity != "All":
-      #  df_filtered = df_filtered[df_filtered["Ethnicity"] == selected_ethnicity]
-    # if selected_race != "All":
-        # df_filtered = df_filtered[df_filtered["Race"] == selected_race]
+        filtered_df = filtered_df[filtered_df["Ethnicity"] == selected_ethnicity]
+
+    # Select City (Filtered Based on Ethnicity)
+    selected_city = st.sidebar.selectbox("Select City", ["All"] + sorted(filtered_df["City"].dropna().unique().tolist()))
     if selected_city != "All":
-        df_filtered = df_filtered[df_filtered["City"] == selected_city]
+        filtered_df = filtered_df[filtered_df["City"] == selected_city]
+
+    # Select Participant (Filtered Based on Previous Selections)
+    valid_participants = sorted(filtered_df["ParticipantName"].dropna().unique().tolist())
+    selected_participant = st.sidebar.selectbox("Select Participant", ["All"] + valid_participants)
+    if selected_participant != "All":
+        filtered_df = filtered_df[filtered_df["ParticipantName"] == selected_participant]
+
+    # Final Filtered Data
+    df_filtered = filtered_df.copy()
+
+
+
+    # Dependent Filters
+    # selected_org = st.sidebar.selectbox("Select Organization", ["All"] + sorted(df_activity["OrganizationName"].dropna().unique().tolist()))
+    # filtered_cohorts = df_activity[df_activity["OrganizationName"] == selected_org] if selected_org != "All" else df_activity
+    # selected_cohort = st.sidebar.selectbox("Select Cohort", ["All"] + sorted(filtered_cohorts["CohortName"].dropna().unique().tolist()))
+    # filtered_programs = filtered_cohorts[filtered_cohorts["CohortName"] == selected_cohort] if selected_cohort != "All" else filtered_cohorts
+    # selected_program = st.sidebar.selectbox("Select Program", ["All"] + sorted(filtered_programs["ProgramName"].dropna().unique().tolist()))
+    # filtered_physicians = filtered_programs[filtered_programs["ProgramName"] == selected_program] if selected_program != "All" else filtered_programs
+    # selected_physician = st.sidebar.selectbox("Select Physician", ["All"] + sorted(filtered_physicians["PhysicianName"].dropna().unique().tolist()))
+    # filtered_participants = filtered_physicians[filtered_physicians["PhysicianName"] == selected_physician] if selected_physician != "All" else filtered_physicians
+    # selected_participant = st.sidebar.selectbox("Select Participant", ["All"] + sorted(filtered_participants["ParticipantName"].dropna().unique().tolist()))
+    # selected_age_group = st.sidebar.selectbox("Select Age Group", ["All"] + sorted(filtered_participants["AgeGroup"].dropna().unique().tolist()))
+    # selected_gender = st.sidebar.selectbox("Select Gender", ["All"] + sorted(filtered_participants["ParticipantGender"].dropna().unique().tolist()))
+    # selected_ethnicity = st.sidebar.selectbox("Select Ethnicity", ["All"] + sorted(filtered_participants["Ethnicity"].dropna().unique().tolist()))
+    # # selected_race = st.sidebar.selectbox("Select Race", ["All"] + sorted(filtered_participants["Race"].dropna().unique().tolist()))
+    # selected_city = st.sidebar.selectbox("Select City", ["All"] + sorted(filtered_participants["City"].dropna().unique().tolist()))
+   # # selected_country = st.sidebar.selectbox("Select Country", ["All"] + sorted(filtered_participants["Country"].dropna().unique().tolist()))
+
+    # # Apply Filters
+    # df_filtered = filtered_participants.copy()
+    # if selected_gender != "All":
+        # df_filtered = df_filtered[df_filtered["ParticipantGender"] == selected_gender]
+    # if selected_age_group != "All":
+        # df_filtered = df_filtered[df_filtered["AgeGroup"] == selected_age_group]
+    # if selected_ethnicity != "All":
+        # df_filtered = df_filtered[df_filtered["Ethnicity"] == selected_ethnicity]
+    
+    # valid_participants = df_filtered["ParticipantName"].dropna().unique().tolist()
+    # selected_participant = st.sidebar.selectbox("Select Participant", ["All"] + sorted(valid_participants))
+
+    # if selected_participant != "All":
+        # df_filtered = df_filtered[df_filtered["ParticipantName"] == selected_participant]
+    # #if selected_age_group != "All":
+    # #    df_filtered = df_filtered[df_filtered["AgeGroup"] == selected_age_group]
+    # #if selected_gender != "All":
+     # #   df_filtered = df_filtered[df_filtered["ParticipantGender"] == selected_gender]
+    # #if selected_ethnicity != "All":
+      # #  df_filtered = df_filtered[df_filtered["Ethnicity"] == selected_ethnicity]
+    # # if selected_race != "All":
+        # # df_filtered = df_filtered[df_filtered["Race"] == selected_race]
+    # if selected_city != "All":
+        # df_filtered = df_filtered[df_filtered["City"] == selected_city]
     #if selected_country != "All":
      #   df_filtered = df_filtered[df_filtered["Country"] == selected_country]
 
