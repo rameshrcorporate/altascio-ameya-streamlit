@@ -17,7 +17,7 @@ def main():
 
     # Convert necessary columns
     numeric_cols = ["Steps", "DistanceInMeters", "Calories", "VigorousIntensityDurationInSeconds",
-                    "ModerateIntensityDurationInSeconds", "SedentaryDurationInSeconds"]
+                    "ModerateIntensityDurationInSeconds", "SedentaryDurationInSeconds","LightIntensityDurationInSeconds"]
     df_activity[numeric_cols] = df_activity[numeric_cols].apply(pd.to_numeric, errors="coerce")
     df_activity["RecordDate"] = pd.to_datetime(df_activity["RecordDate"], errors="coerce")
     df_activity["StartTimeFormatted"] = pd.to_datetime(df_activity["StartTimeOffsetFormatted"], errors="coerce")
@@ -184,9 +184,11 @@ def main():
         st.subheader("Activity Intensity Breakdown")
         activity_intensity = df_filtered.groupby("OrganizationName")[["VigorousIntensityDurationInSeconds",
                                                                       "ModerateIntensityDurationInSeconds",
+                                                                      "LightIntensityDurationInSeconds",
                                                                       "SedentaryDurationInSeconds"]].sum().reset_index()
         fig4 = px.bar(activity_intensity, x="OrganizationName", y=["VigorousIntensityDurationInSeconds",
                                                                     "ModerateIntensityDurationInSeconds",
+                                                                    "LightIntensityDurationInSeconds",
                                                                     "SedentaryDurationInSeconds"],
                       title="Activity Intensity Breakdown",
                       labels={"value": "Total Duration (Seconds)", "variable": "Activity Intensity"},
