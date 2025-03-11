@@ -5,22 +5,23 @@ import plotly.express as px
 import numpy as np
 import seaborn
 
+def load_data():
+    SHEET_URL = "https://docs.google.com/spreadsheets/d/14BGFfbaTbEaLLA0clc38D80G3u2h3_I9/export?format=csv"
+    return pd.read_csv(SHEET_URL)
+
+
+@st.cache_data
 def main():
     st.title("Sleep Dashboard")
    # st.write("This is the second dashboard.")
 
-# Ensure this function is accessible from app.py
-if __name__ == "__main__":
-    main()
+
 
 # Load Dataset
 # file_path = "Synthetic_Dataset_Sleep.xlsx"  # Ensure the file is in the same directory
 # df = pd.read_excel(file_path)
 
-@st.cache_data
-def load_data():
-    SHEET_URL = "https://docs.google.com/spreadsheets/d/14BGFfbaTbEaLLA0clc38D80G3u2h3_I9/export?format=csv"
-    return pd.read_csv(SHEET_URL)
+
 
 df = load_data()  # Call the function to get the cached DataFrame
 
@@ -216,3 +217,8 @@ if not df_filtered.empty:
     st.plotly_chart(fig_age_scatter)
 else:
     st.warning("No data available for Sleep Duration vs Age.")
+
+
+# Ensure this function is accessible from app.py
+if __name__ == "__main__":
+    main()
