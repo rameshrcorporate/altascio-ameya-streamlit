@@ -244,19 +244,58 @@ def main():
         st.warning("No data available for Weekly Trends.")
 
     # 3️⃣ Anomalies in Activity Data (Box Plot)
+    
+    
+    # Count anomalies by type
+    anomaly_counts = df_filtered["AnomalyType"].value_counts()
+    
     if not df_filtered.empty:
-        st.subheader("Anomalies in Activity Data (Box Plot)")
+        st.subheader("Anomaly Type Breakdown")
         
         # Apply Hierarchical Filters
         if "OrganizationName" in df_filtered.columns and not df_filtered.empty:
-            fig_anomalies = px.box(df_filtered, x="OrganizationName", y="Steps",
-                                    title="Activity Anomalies (Steps)",
-                                    labels={"Steps": "Steps", "OrganizationName": "Organization"})
-            st.plotly_chart(fig_anomalies)
+           # Plot anomaly type distribution
+            fig, ax = plt.subplots(figsize=(8, 5))
+            sns.barplot(x=anomaly_counts.index, y=anomaly_counts.values, ax=ax, palette="coolwarm")
+            ax.set_title("Anomaly Type Distribution")
+            ax.set_xlabel("Anomaly Type")
+            ax.set_ylabel("Count")
+            ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+            st.pyplot(fig)
         else:
             st.warning("No data available after applying filters.")
     else:
         st.warning("No data available for Activity Anomalies.")
+
+    # Convert Date column to datetime
+    df_filtered["RecordDate"] = pd.to_datetime(df_filtered["RecordDate"])
+
+    # Count anomalies per day
+    anomaly_trend = df_filtered.groupby("RecordDate")["AnomalyType"].count()
+
+    # Plot anomaly trend over time
+    fig, ax = plt.subplots(figsize=(10, 5))
+    anomaly_trend.plot(ax=ax, color="red", marker="o", linestyle="-")
+    ax.set_title("Anomalies Over Time")
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Number of Anomalies")
+
+    st.pyplot(fig)
+
+
+    # Count anomalies per participant
+    top_anomalies = df_filtered["ParticipantName"].value_counts().head(10)
+
+    # Plot bar chart
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.barplot(x=top_anomalies.values, y=top_anomalies.index, ax=ax, palette="magma")
+    ax.set_title("Top 10 Participants with Most Anomalies")
+    ax.set_xlabel("Number of Anomalies")
+    ax.set_ylabel("Participant Name")
+
+    st.pyplot(fig)
+
+
 
 # Ensure this function is accessible from app.py
 if __name__ == "__main__":
