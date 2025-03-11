@@ -10,7 +10,7 @@ def load_data():
     return pd.read_csv(SHEET_URL)
 
 def main():
-    st.title("Steps Dashboard")
+    st.title("Steps Dashboard 🏃‍♂️")
   
     df_activity = load_data()  # Call the function to get the cached DataFrame
 
@@ -25,7 +25,7 @@ def main():
     df_activity["ParticipantName"] = df_activity["LastName"] + " " + df_activity["FirstName"]
 
     # Streamlit App Layout
-    st.title("Activity Tracking Dashboard 🏃‍♂️")
+    #st.title("Activity Tracking Dashboard 🏃‍♂️")
     st.sidebar.header("Filter Data")
 
     # Dependent Filters

@@ -13,7 +13,7 @@ def load_data():
 
 
 def main():
-    st.title("Sleep Dashboard")
+    st.title("Sleep Dashboard  💤")
    # st.write("This is the second dashboard.")
 
     df = load_data()  # Call the function to get the cached DataFrame
@@ -35,7 +35,7 @@ def main():
 
 
     #Streamlit App Layout
-    st.title("Sleep Activity Dashboard 💤")
+    #st.title("Sleep Activity Dashboard 💤")
     st.sidebar.header("Filter Data")
 
     #Dependent Filters
