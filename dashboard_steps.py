@@ -269,7 +269,7 @@ def main():
 
     # Convert Date column to datetime
     df_filtered["RecordDate"] = pd.to_datetime(df_filtered["RecordDate"])
-
+    st.subheader("Anomalies Over Time")
     # Count anomalies per day
     anomaly_trend = df_filtered.groupby("RecordDate")["AnomalyType"].count()
 
@@ -285,7 +285,7 @@ def main():
 
     # Count anomalies per participant
     top_anomalies = df_filtered["ParticipantName"].value_counts().head(10)
-
+    st.subheader("Top 10 Participants with  Most Anomalies") 
     # Plot bar chart
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.barplot(x=top_anomalies.values, y=top_anomalies.index, ax=ax, palette="magma")
