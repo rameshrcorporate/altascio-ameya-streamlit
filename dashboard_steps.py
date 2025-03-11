@@ -43,24 +43,32 @@ def main():
     selected_ethnicity = st.sidebar.selectbox("Select Ethnicity", ["All"] + sorted(filtered_participants["Ethnicity"].dropna().unique().tolist()))
     # selected_race = st.sidebar.selectbox("Select Race", ["All"] + sorted(filtered_participants["Race"].dropna().unique().tolist()))
     selected_city = st.sidebar.selectbox("Select City", ["All"] + sorted(filtered_participants["City"].dropna().unique().tolist()))
-    selected_country = st.sidebar.selectbox("Select Country", ["All"] + sorted(filtered_participants["Country"].dropna().unique().tolist()))
+   # selected_country = st.sidebar.selectbox("Select Country", ["All"] + sorted(filtered_participants["Country"].dropna().unique().tolist()))
 
     # Apply Filters
     df_filtered = filtered_participants.copy()
-    if selected_participant != "All":
-        df_filtered = df_filtered[df_filtered["ParticipantName"] == selected_participant]
-    if selected_age_group != "All":
-        df_filtered = df_filtered[df_filtered["AgeGroup"] == selected_age_group]
     if selected_gender != "All":
         df_filtered = df_filtered[df_filtered["ParticipantGender"] == selected_gender]
+    if selected_age_group != "All":
+        df_filtered = df_filtered[df_filtered["AgeGroup"] == selected_age_group]
     if selected_ethnicity != "All":
         df_filtered = df_filtered[df_filtered["Ethnicity"] == selected_ethnicity]
+    
+    
+    if selected_participant != "All":
+        df_filtered = df_filtered[df_filtered["ParticipantName"] == selected_participant]
+    #if selected_age_group != "All":
+    #    df_filtered = df_filtered[df_filtered["AgeGroup"] == selected_age_group]
+    #if selected_gender != "All":
+     #   df_filtered = df_filtered[df_filtered["ParticipantGender"] == selected_gender]
+    #if selected_ethnicity != "All":
+      #  df_filtered = df_filtered[df_filtered["Ethnicity"] == selected_ethnicity]
     # if selected_race != "All":
         # df_filtered = df_filtered[df_filtered["Race"] == selected_race]
     if selected_city != "All":
         df_filtered = df_filtered[df_filtered["City"] == selected_city]
-    if selected_country != "All":
-        df_filtered = df_filtered[df_filtered["Country"] == selected_country]
+    #if selected_country != "All":
+     #   df_filtered = df_filtered[df_filtered["Country"] == selected_country]
 
     # Display Participant and Physician Photos in Main Dashboard
     col1, col2 = st.columns([1, 1])
