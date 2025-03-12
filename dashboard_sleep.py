@@ -91,7 +91,7 @@ def main():
     avg_sleep_by_org = df_filtered.groupby("OrganizationName")["DurationInSeconds"].mean().reset_index()
     fig1 = px.bar(avg_sleep_by_org, x="OrganizationName", y="DurationInSeconds", color="OrganizationName",
                   title="Average Sleep Duration per Organization", labels={"DurationInSeconds": "Avg Sleep (Seconds)"}, barmode='group')
-    st.plotly_chart(fig1)
+    st.plotly_chart(fig1,key="avg_sleep_by_org")
 
     # Sleep Duration Trend Over Time
     if not df_filtered.empty:
@@ -101,7 +101,7 @@ def main():
                        title="Sleep Duration Trend Over Time",
                        labels={"DurationInSeconds": "Avg Sleep (Seconds)", "RecordDate": "Date"},
                        line_shape='linear', render_mode='svg')
-        st.plotly_chart(fig2)
+        st.plotly_chart(fig2,key="sleep_duratoin_trend")
     else:
         st.warning("No data available for the selected filters.")
 
@@ -113,7 +113,7 @@ def main():
                       title="Average Sleep Stages per Organization",
                       labels={"value": "Avg Duration (Seconds)", "variable": "Sleep Stage"},
                       barmode="stack")
-        st.plotly_chart(fig3)
+        st.plotly_chart(fig3,key="sleep_stages")
     else:
         st.warning("No data available for Sleep Stages Breakdown.")
 
@@ -124,7 +124,7 @@ def main():
                           title="Total Time in Bed vs. Actual Sleep",
                           labels={"TimeSpent": "Total Time in Bed (Seconds)", "DurationAsleep": "Actual Sleep Duration (Seconds)"},
                           opacity=0.7, color="OrganizationName")
-        st.plotly_chart(fig4)
+        st.plotly_chart(fig4,key="totaltimeinbed_vs_actualsleep")
     else:
         st.warning("No data available for Time in Bed vs. Actual Sleep.")
         
@@ -132,35 +132,39 @@ def main():
 # Sleep Efficiency by Organization
     st.subheader("📊 Sleep Efficiency per Organization")
     sleep_efficiency_by_org = df_filtered.groupby("OrganizationName")["SleepEfficiency"].mean().reset_index()
-    fig2 = px.bar(sleep_efficiency_by_org, x="OrganizationName", y="SleepEfficiency", color="OrganizationName",
+    fig5 = px.bar(sleep_efficiency_by_org, x="OrganizationName", y="SleepEfficiency", color="OrganizationName",
                   title="Average Sleep Efficiency per Organization (%)", labels={"SleepEfficiency": "Sleep Efficiency (%)"}, barmode='group')
-    st.plotly_chart(fig2)
+    st.plotly_chart(fig5,key="avg_sleep_eff_org")
 
-    # Sleep Efficiency vs. Duration Asleep
-    st.subheader("📊 Sleep Efficiency vs. Duration Asleep")
-    fig3 = px.scatter(df_filtered, x="DurationAsleep", y="SleepEfficiency", color="OrganizationName",
+   # Sleep Efficiency vs. Duration Asleep
+    if not df_filtered.empty:
+        st.subheader("📊 Sleep Efficiency vs. Duration Asleep")
+        fig6 = px.scatter(df_filtered, x="DurationAsleep", y="SleepEfficiency", color="OrganizationName",
                       title="Relationship Between Sleep Efficiency and Sleep Duration",
                       labels={"DurationAsleep": "Duration Asleep (Seconds)", "SleepEfficiency": "Sleep Efficiency (%)"},
                       opacity=0.7)
-    st.plotly_chart(fig3)
+        st.plotly_chart(fig6, key="sleep_eff_vs_durationasleep")
+    else:
+        st.warning("No data available for Sleep Efficiency vs. Duration Asleep.")
+
 
     # Sleep Duration by Gender
-    st.subheader("📊 Average Sleep Duration by Gender")
-    avg_sleep_by_gender = df_filtered.groupby("ParticipantGender")["DurationInSeconds"].mean().reset_index()
-    fig4 = px.bar(avg_sleep_by_gender, x="ParticipantGender", y="DurationInSeconds", color="ParticipantGender",
-                  title="Average Sleep Duration by Gender", labels={"DurationInSeconds": "Avg Sleep (Seconds)"}, barmode='group')
-    st.plotly_chart(fig4)
+    # st.subheader("📊 Average Sleep Duration by Gender")
+    # avg_sleep_by_gender = df_filtered.groupby("ParticipantGender")["DurationInSeconds"].mean().reset_index()
+    # fig7 = px.bar(avg_sleep_by_gender, x="ParticipantGender", y="DurationInSeconds", color="ParticipantGender",
+                  # title="Average Sleep Duration by Gender", labels={"DurationInSeconds": "Avg Sleep (Seconds)"}, barmode='group')
+    # st.plotly_chart(fig7,key="avg_sleep_by_gender")
 
-    # Total Time in Bed vs. Actual Sleep
-    if not df_filtered.empty:
-        st.subheader("📊 Total Time in Bed vs. Actual Sleep")
-        fig5 = px.scatter(df_filtered, x="TimeSpent", y="DurationAsleep",
-                          title="Total Time in Bed vs. Actual Sleep",
-                          labels={"TimeSpent": "Total Time in Bed (Seconds)", "DurationAsleep": "Actual Sleep Duration (Seconds)"},
-                          opacity=0.7, color="OrganizationName")
-        st.plotly_chart(fig5)
-    else:
-        st.warning("No data available for Time in Bed vs. Actual Sleep.")
+    # # Total Time in Bed vs. Actual Sleep
+    # if not df_filtered.empty:
+        # st.subheader("📊 Total Time in Bed vs. Actual Sleep")
+        # fig5 = px.scatter(df_filtered, x="TimeSpent", y="DurationAsleep",
+                          # title="Total Time in Bed vs. Actual Sleep",
+                          # labels={"TimeSpent": "Total Time in Bed (Seconds)", "DurationAsleep": "Actual Sleep Duration (Seconds)"},
+                          # opacity=0.7, color="OrganizationName")
+        # st.plotly_chart(fig8)
+    # else:
+        # st.warning("No data available for Time in Bed vs. Actual Sleep.")
 
 if __name__ == "__main__":
     main()
