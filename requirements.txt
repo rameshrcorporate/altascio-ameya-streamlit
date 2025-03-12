@@ -2,6 +2,7 @@ plotly
 streamlit
 seaborn
 numpy
+openpyxl
 pandas
 matplotlib
 
