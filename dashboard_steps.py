@@ -6,8 +6,9 @@ import seaborn as sns
 
 @st.cache_data(ttl=600)
 def load_data():
-    SHEET_URL = "https://docs.google.com/spreadsheets/d/1BlXwzAWNnah-lRlmAqAKcDAtLLfUStYn/export?format=csv"
+    SHEET_URL = "https://docs.google.com/spreadsheets/d/1kAwMXmfFP9Lk2o-MISs43zw-fXgrhxK-/export?format=csv"
     return pd.read_csv(SHEET_URL)
+  
 
 def main():
     st.title("Steps Dashboard 🏃‍♂️")
