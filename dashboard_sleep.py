@@ -50,7 +50,7 @@ def main():
     selected_participant = st.sidebar.selectbox("Select Participant", ["All"] + sorted((filtered_participants["FirstName"] + " " + filtered_participants["LastName"]).dropna().unique().tolist()))
     selected_gender = st.sidebar.selectbox("Select Gender", ["All"] + sorted(filtered_participants["ParticipantGender"].dropna().unique().tolist()))
     selected_ethnicity = st.sidebar.selectbox("Select Ethnicity", ["All"] + sorted(filtered_participants["Ethnicity"].dropna().unique().tolist()))
-    selected_race = st.sidebar.selectbox("Select Race", ["All"] + sorted(filtered_participants["Race"].dropna().unique().tolist()))
+   # selected_race = st.sidebar.selectbox("Select Race", ["All"] + sorted(filtered_participants["Race"].dropna().unique().tolist()))
     selected_city = st.sidebar.selectbox("Select City", ["All"] + sorted(filtered_participants["City"].dropna().unique().tolist()))
     selected_country = st.sidebar.selectbox("Select Country", ["All"] + sorted(filtered_participants["Country"].dropna().unique().tolist()))
 
@@ -94,8 +94,8 @@ def main():
         df_filtered = df_filtered[df_filtered["ParticipantGender"] == selected_gender]
     if selected_ethnicity != "All":
         df_filtered = df_filtered[df_filtered["Ethnicity"] == selected_ethnicity]
-    if selected_race != "All":
-        df_filtered = df_filtered[df_filtered["Race"] == selected_race]
+    # if selected_race != "All":
+        # df_filtered = df_filtered[df_filtered["Race"] == selected_race]
     if selected_city != "All":
         df_filtered = df_filtered[df_filtered["City"] == selected_city]
     if selected_country != "All":
