@@ -4,16 +4,21 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-@st.cache_data(ttl=600)
-def load_data():
-    SHEET_URL = "https://docs.google.com/spreadsheets/d/1kAwMXmfFP9Lk2o-MISs43zw-fXgrhxK-/export?format=csv"
-    return pd.read_csv(SHEET_URL)
-  
 
+
+S3_PUBLIC_URL = "https://althealth.s3.us-east-1.amazonaws.com/Synthetic_Dataset_Activity_V3.xlsx"
+
+@st.cache_data(ttl=1800)
+def load_s3_excel():
+    return pd.read_excel(S3_PUBLIC_URL, engine="openpyxl")
+ 
 def main():
     st.title("Steps Dashboard 🏃‍♂️")
   
-    df_activity = load_data()  # Call the function to get the cached DataFrame
+    df_activity = load_s3_excel()
+    if df_activity is None:
+        st.error("Failed to load data from S3.")
+        return # Call the function to get the cached DataFrame
 
 
     # Convert necessary columns

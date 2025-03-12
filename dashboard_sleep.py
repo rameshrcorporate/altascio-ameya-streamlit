@@ -1,107 +1,74 @@
 import streamlit as st
 import pandas as pd
-# import plotly as px
 import plotly.express as px
-import numpy as np
-import seaborn
+#import boto3
+#from io import BytesIO
 
-@st.cache_data(ttl=600)
-def load_data():
-    SHEET_URL = "https://docs.google.com/spreadsheets/d/1edZ1qyuMS62EYkWsNZScR3aC9X18vrtQ/export?format=csv"
-    return pd.read_csv(SHEET_URL)
+# -------------------------------
+# 🚀 AWS S3 Configuration
+# -------------------------------
+S3_PUBLIC_URL = "https://althealth.s3.us-east-1.amazonaws.com/Synthetic_Dataset_Sleep_V3.xlsx"
 
-
+@st.cache_data(ttl=1800)
+def load_s3_excel():
+    return pd.read_excel(S3_PUBLIC_URL, engine="openpyxl")
 
 def main():
     st.title("Sleep Dashboard  💤")
-   # st.write("This is the second dashboard.")
 
-    df = load_data()  # Call the function to get the cached DataFrame
+    # Load Data from S3
+    df = load_s3_excel()
+    if df is None:
+        st.error("Failed to load data from S3.")
+        return
 
     # Convert necessary columns
     numeric_cols = ["DurationInSeconds", "DeepSleep", "LightSleep", "RemSleep", "AwakeTime", "TimeSpent", "DurationAsleep"]
     df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors="coerce")
     df["Start"] = pd.to_datetime(df["Start"], errors="coerce")
     df["RecordDate"] = pd.to_datetime(df["RecordDate"], errors="coerce")
-    df["BirthDate"] = pd.to_datetime(df["BirthDate"], errors="coerce")
+    df["ParticipantName"] = df["LastName"] + " " + df["FirstName"]
 
-    # Calculate Age from BirthDate
-    df["Age"] = (pd.Timestamp.today() - df["BirthDate"]).dt.days // 365
+    # Ensure AgeGroup is treated as a string
+    df["AgeGroup"] = df["AgeGroup"].astype(str)
+    
+    df["SleepEfficiency"] = ((df["DurationAsleep"] / df["TimeSpent"]) * 100).round(2)
 
-    df["DurationAsleep"] = df["DeepSleep"] + df["LightSleep"] + df["RemSleep"]
-
-    df["SleepEfficiency"] = (df["DurationAsleep"] / df["TimeSpent"]) * 100
-    df["SleepEfficiency"] = df["SleepEfficiency"].fillna(0).round(2)
-
-
-    #Streamlit App Layout
-    #st.title("Sleep Activity Dashboard 💤")
+    # Streamlit Sidebar Filters
     st.sidebar.header("Filter Data")
 
-    #Dependent Filters
+    # Organization Filter
     selected_org = st.sidebar.selectbox("Select Organization", ["All"] + sorted(df["OrganizationName"].dropna().unique().tolist()))
-    filtered_cohorts = df[df["OrganizationName"] == selected_org] if selected_org != "All" else df
-    selected_cohort = st.sidebar.selectbox("Select Cohort", ["All"] + sorted(filtered_cohorts["CohortName"].dropna().unique().tolist()))
-    filtered_programs = filtered_cohorts[filtered_cohorts["CohortName"] == selected_cohort] if selected_cohort != "All" else filtered_cohorts
-    selected_program = st.sidebar.selectbox("Select Program", ["All"] + sorted(filtered_programs["ProgramName"].dropna().unique().tolist()))
-    filtered_physicians = filtered_programs[filtered_programs["ProgramName"] == selected_program] if selected_program != "All" else filtered_programs
-    selected_physician = st.sidebar.selectbox("Select Physician", ["All"] + sorted(filtered_physicians["PhysicianName"].dropna().unique().tolist()))
-    filtered_participants = filtered_physicians[filtered_physicians["PhysicianName"] == selected_physician] if selected_physician != "All" else filtered_physicians
-    selected_participant = st.sidebar.selectbox("Select Participant", ["All"] + sorted((filtered_participants["FirstName"] + " " + filtered_participants["LastName"]).dropna().unique().tolist()))
-    selected_gender = st.sidebar.selectbox("Select Gender", ["All"] + sorted(filtered_participants["ParticipantGender"].dropna().unique().tolist()))
-    selected_ethnicity = st.sidebar.selectbox("Select Ethnicity", ["All"] + sorted(filtered_participants["Ethnicity"].dropna().unique().tolist()))
-   # selected_race = st.sidebar.selectbox("Select Race", ["All"] + sorted(filtered_participants["Race"].dropna().unique().tolist()))
-    selected_city = st.sidebar.selectbox("Select City", ["All"] + sorted(filtered_participants["City"].dropna().unique().tolist()))
-    selected_country = st.sidebar.selectbox("Select Country", ["All"] + sorted(filtered_participants["Country"].dropna().unique().tolist()))
+    df_filtered = df if selected_org == "All" else df[df["OrganizationName"] == selected_org]
 
-    # filter_cols = st.columns(6)  # Adjust the number of columns as needed
+    # Cohort Filter (Dependent on Organization)
+    selected_cohort = st.sidebar.selectbox("Select Cohort", ["All"] + sorted(df_filtered["CohortName"].dropna().unique().tolist()))
+    df_filtered = df_filtered if selected_cohort == "All" else df_filtered[df_filtered["CohortName"] == selected_cohort]
 
-    # with filter_cols[0]:
-        # selected_org = st.selectbox("Select Organization", ["All"] + sorted(df["OrganizationName"].dropna().unique().tolist()))
-    # with filter_cols[1]:
-        # selected_cohort = st.selectbox("Select Cohort", ["All"] + sorted(df["CohortName"].dropna().unique().tolist()))
-    # with filter_cols[2]:
-        # selected_program = st.selectbox("Select Program", ["All"] + sorted(df["ProgramName"].dropna().unique().tolist()))
-    # with filter_cols[3]:
-        # selected_physician = st.selectbox("Select Physician", ["All"] + sorted(df["PhysicianName"].dropna().unique().tolist()))
-    # with filter_cols[4]:
-        # selected_participant = st.selectbox("Select Participant", ["All"] + sorted((df["FirstName"] + " " + df["LastName"]).dropna().unique().tolist()))
+    # Program Filter (Dependent on Cohort)
+    selected_program = st.sidebar.selectbox("Select Program", ["All"] + sorted(df_filtered["ProgramName"].dropna().unique().tolist()))
+    df_filtered = df_filtered if selected_program == "All" else df_filtered[df_filtered["ProgramName"] == selected_program]
 
-    # # Additional filters in another row
-    # filter_cols2 = st.columns(5)
+    # Physician Filter (Dependent on Organization)
+    selected_physician = st.sidebar.selectbox("Select Physician", ["All"] + sorted(df_filtered["PhysicianName"].dropna().unique().tolist()))
+    df_filtered = df_filtered if selected_physician == "All" else df_filtered[df_filtered["PhysicianName"] == selected_physician]
 
-    # with filter_cols2[0]:
-        # selected_gender = st.selectbox("Select Gender", ["All"] + sorted(df["ParticipantGender"].dropna().unique().tolist()))
-    # with filter_cols2[1]:
-        # selected_ethnicity = st.selectbox("Select Ethnicity", ["All"] + sorted(df["Ethnicity"].dropna().unique().tolist()))
-    # with filter_cols2[2]:
-        # selected_race = st.selectbox("Select Race", ["All"] + sorted(df["Race"].dropna().unique().tolist()))
-    # with filter_cols2[3]:
-        # selected_city = st.selectbox("Select City", ["All"] + sorted(df["City"].dropna().unique().tolist()))
-    # with filter_cols2[4]:
-        # selected_country = st.selectbox("Select Country", ["All"] + sorted(df["Country"].dropna().unique().tolist()))
+    # Participant Filter (Dependent on Program)
+    selected_participant = st.sidebar.selectbox("Select Participant", ["All"] + sorted(df_filtered["ParticipantName"].dropna().unique().tolist()))
+    df_filtered = df_filtered if selected_participant == "All" else df_filtered[df_filtered["ParticipantName"] == selected_participant]
 
+    # Gender Filter (Independent)
+    selected_gender = st.sidebar.selectbox("Select Gender", ["All"] + sorted(df_filtered["ParticipantGender"].dropna().unique().tolist()))
+    df_filtered = df_filtered if selected_gender == "All" else df_filtered[df_filtered["ParticipantGender"] == selected_gender]
 
+    # Ethnicity Filter (Independent)
+    selected_ethnicity = st.sidebar.selectbox("Select Ethnicity", ["All"] + sorted(df_filtered["Ethnicity"].dropna().unique().tolist()))
+    df_filtered = df_filtered if selected_ethnicity == "All" else df_filtered[df_filtered["Ethnicity"] == selected_ethnicity]
 
+    # Age Group Filter (Using Existing Column)
+    selected_age_group = st.sidebar.selectbox("Select Age Group", ["All"] + sorted(df_filtered["AgeGroup"].dropna().unique().tolist()))
+    df_filtered = df_filtered if selected_age_group == "All" else df_filtered[df_filtered["AgeGroup"] == selected_age_group]
 
-
-    # Apply Filters
-    df_filtered = filtered_participants.copy()
-    df_filtered["ParticipantName"] = df_filtered["FirstName"] + " " + df_filtered["LastName"]
-    if selected_participant != "All":
-        df_filtered = df_filtered[df_filtered["ParticipantName"] == selected_participant]
-    if selected_gender != "All":
-        df_filtered = df_filtered[df_filtered["ParticipantGender"] == selected_gender]
-    if selected_ethnicity != "All":
-        df_filtered = df_filtered[df_filtered["Ethnicity"] == selected_ethnicity]
-    # if selected_race != "All":
-        # df_filtered = df_filtered[df_filtered["Race"] == selected_race]
-    if selected_city != "All":
-        df_filtered = df_filtered[df_filtered["City"] == selected_city]
-    if selected_country != "All":
-        df_filtered = df_filtered[df_filtered["Country"] == selected_country]
-
-    # Display Participant and Physician Photos in Main Dashboard
     col1, col2 = st.columns([1, 1])
 
     if selected_physician != "All":
@@ -116,14 +83,17 @@ def main():
             with col2:
                 st.image(participant_photo, caption=f"Participant: {selected_participant}", width=150)
 
-    # 1️⃣ Average Sleep Duration per Organization
+
+
+
+    # 📊 Data Visualizations
     st.subheader("Average Sleep Duration per Organization")
     avg_sleep_by_org = df_filtered.groupby("OrganizationName")["DurationInSeconds"].mean().reset_index()
     fig1 = px.bar(avg_sleep_by_org, x="OrganizationName", y="DurationInSeconds", color="OrganizationName",
                   title="Average Sleep Duration per Organization", labels={"DurationInSeconds": "Avg Sleep (Seconds)"}, barmode='group')
     st.plotly_chart(fig1)
 
-    # 2️⃣ Sleep Duration Trend Over Time
+    # Sleep Duration Trend Over Time
     if not df_filtered.empty:
         st.subheader("Sleep Duration Trend Over Time")
         avg_sleep_trend = df_filtered.groupby("RecordDate")["DurationInSeconds"].mean().reset_index()
@@ -135,83 +105,62 @@ def main():
     else:
         st.warning("No data available for the selected filters.")
 
-    # 3️⃣ Sleep Stages Breakdown (Stacked Bar Chart)
+    # Sleep Stages Breakdown
     if not df_filtered.empty:
         st.subheader("Sleep Stages Breakdown")
-        
-        # Summing up sleep stages
         sleep_stages = df_filtered.groupby("OrganizationName")[["DeepSleep", "LightSleep", "RemSleep", "AwakeTime"]].mean().reset_index()
-
-        # Create stacked bar chart
         fig3 = px.bar(sleep_stages, x="OrganizationName", y=["DeepSleep", "LightSleep", "RemSleep", "AwakeTime"],
                       title="Average Sleep Stages per Organization",
                       labels={"value": "Avg Duration (Seconds)", "variable": "Sleep Stage"},
                       barmode="stack")
-
         st.plotly_chart(fig3)
     else:
         st.warning("No data available for Sleep Stages Breakdown.")
 
-    # 4️⃣ Total Time in Bed vs. Actual Sleep (Scatter Plot)
+    # Total Time in Bed vs. Actual Sleep
     if not df_filtered.empty:
         st.subheader("Total Time in Bed vs. Actual Sleep")
-        
         fig4 = px.scatter(df_filtered, x="TimeSpent", y="DurationAsleep",
                           title="Total Time in Bed vs. Actual Sleep",
                           labels={"TimeSpent": "Total Time in Bed (Seconds)", "DurationAsleep": "Actual Sleep Duration (Seconds)"},
                           opacity=0.7, color="OrganizationName")
-
         st.plotly_chart(fig4)
     else:
         st.warning("No data available for Time in Bed vs. Actual Sleep.")
-
-    # 5️⃣ Sleep Start Time Distribution (Histogram)
-    if not df_filtered.empty:
-        st.subheader("Sleep Start Time Distribution")
         
-        df_filtered["Sleep Start Hour"] = df_filtered["Start"].dt.hour
+        
+# Sleep Efficiency by Organization
+    st.subheader("📊 Sleep Efficiency per Organization")
+    sleep_efficiency_by_org = df_filtered.groupby("OrganizationName")["SleepEfficiency"].mean().reset_index()
+    fig2 = px.bar(sleep_efficiency_by_org, x="OrganizationName", y="SleepEfficiency", color="OrganizationName",
+                  title="Average Sleep Efficiency per Organization (%)", labels={"SleepEfficiency": "Sleep Efficiency (%)"}, barmode='group')
+    st.plotly_chart(fig2)
 
-        fig5 = px.histogram(df_filtered, x="Sleep Start Hour", nbins=24, color="OrganizationName",
-                            title="Sleep Start Time Distribution",
-                            labels={"Sleep Start Hour": "Hour of the Day", "count": "Number of Participants"},
-                            opacity=0.75)
+    # Sleep Efficiency vs. Duration Asleep
+    st.subheader("📊 Sleep Efficiency vs. Duration Asleep")
+    fig3 = px.scatter(df_filtered, x="DurationAsleep", y="SleepEfficiency", color="OrganizationName",
+                      title="Relationship Between Sleep Efficiency and Sleep Duration",
+                      labels={"DurationAsleep": "Duration Asleep (Seconds)", "SleepEfficiency": "Sleep Efficiency (%)"},
+                      opacity=0.7)
+    st.plotly_chart(fig3)
 
+    # Sleep Duration by Gender
+    st.subheader("📊 Average Sleep Duration by Gender")
+    avg_sleep_by_gender = df_filtered.groupby("ParticipantGender")["DurationInSeconds"].mean().reset_index()
+    fig4 = px.bar(avg_sleep_by_gender, x="ParticipantGender", y="DurationInSeconds", color="ParticipantGender",
+                  title="Average Sleep Duration by Gender", labels={"DurationInSeconds": "Avg Sleep (Seconds)"}, barmode='group')
+    st.plotly_chart(fig4)
+
+    # Total Time in Bed vs. Actual Sleep
+    if not df_filtered.empty:
+        st.subheader("📊 Total Time in Bed vs. Actual Sleep")
+        fig5 = px.scatter(df_filtered, x="TimeSpent", y="DurationAsleep",
+                          title="Total Time in Bed vs. Actual Sleep",
+                          labels={"TimeSpent": "Total Time in Bed (Seconds)", "DurationAsleep": "Actual Sleep Duration (Seconds)"},
+                          opacity=0.7, color="OrganizationName")
         st.plotly_chart(fig5)
     else:
-        st.warning("No data available for Sleep Start Time Distribution.")
+        st.warning("No data available for Time in Bed vs. Actual Sleep.")
 
-    # Display Participants with Lowest Sleep Efficiency
-    st.subheader("Participants with Lowest Sleep Efficiency")
-    if not df_filtered.empty:
-        lowest_efficiency_df = df_filtered.nsmallest(10, "SleepEfficiency")[["FirstName", "LastName", "OrganizationName", "SleepEfficiency"]]
-        lowest_efficiency_df["ParticipantName"] = lowest_efficiency_df["FirstName"] + " " + lowest_efficiency_df["LastName"]
-        lowest_efficiency_df = lowest_efficiency_df[["ParticipantName", "OrganizationName", "SleepEfficiency"]]
-        st.dataframe(lowest_efficiency_df)
-    else:
-        st.warning("No data available for lowest sleep efficiency.")
-
-    # Sleep Duration vs Age Group Visualization
-    st.subheader("Sleep Duration vs Age Group")
-    if not df_filtered.empty:
-        fig_age = px.box(df_filtered, x="AgeGroup", y="DurationInSeconds", color="AgeGroup",
-                          title="Sleep Duration Across Age Groups",
-                          labels={"DurationInSeconds": "Sleep Duration (Seconds)", "AgeGroup": "Age Group"})
-        st.plotly_chart(fig_age)
-    else:
-        st.warning("No data available for Sleep Duration vs Age Group.")
-
-    # Sleep Duration vs Age Visualization
-    st.subheader("Sleep Duration vs Age")
-    if not df_filtered.empty:
-        fig_age_scatter = px.scatter(df_filtered, x="Age", y="DurationInSeconds", color="Age",
-                          title="Sleep Duration vs Age",
-                          labels={"DurationInSeconds": "Sleep Duration (Seconds)", "Age": "Age"},
-                          opacity=0.7)
-        st.plotly_chart(fig_age_scatter)
-    else:
-        st.warning("No data available for Sleep Duration vs Age.")
-
-
-# Ensure this function is accessible from app.py
 if __name__ == "__main__":
     main()
